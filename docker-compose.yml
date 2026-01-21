@@ -1,0 +1,176 @@
+name: bankmore
+
+networks:
+  public:
+    driver: bridge
+  private:
+    driver: bridge
+    internal: true
+
+volumes:
+  redis_data: {}
+  kafka_data: {}
+  contacorrente_data: {}
+  transferencia_data: {}
+  tarifas_data: {}
+  nuget_cache: {}
+
+services:
+  gateway:
+    build:
+      context: ./src/BankMore.Gateway
+      dockerfile: Dockerfile
+    depends_on:
+      api-contacorrente:
+        condition: service_started
+      api-transferencia:
+        condition: service_started
+      api-tarifas:
+        condition: service_started
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+      JWT__Issuer: "bankmore"
+      JWT__Audience: "bankmore"
+      JWT__SigningKey: "Zy4m9z4uX4WcV8N7QJp0rQZ3m9M1sJvXJ6K8eK4q8XU="
+      Internal__ApiKey: "Q8pZL3X9mK7FvT6eR2S4WJdH0C5B1AqNnYyEo8cUuM4="
+      SERVICES__CONTACORRENTE__BASEURL: "http://api-contacorrente:8080/"
+      SERVICES__TRANSFERENCIA__BASEURL: "http://api-transferencia:8080/"
+      SERVICES__TARIFAS__BASEURL: "http://api-tarifas:8080/"
+      REDIS__CONNECTIONSTRING: "redis:6379"
+      KAFKA__BROKERS: "kafka:9092"
+    networks:
+      - public
+      - private
+    volumes:
+      - ./src/BankMore.Gateway/appsettings.json:/app/appsettings.json:ro
+
+  api-contacorrente:
+    build:
+      context: ./src/BankMore.ContaCorrente.Api
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:8081:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+      ConnectionStrings__SQLite: "Data Source=/data/contacorrente.db"
+      JWT__Issuer: "bankmore"
+      JWT__Audience: "bankmore"
+      JWT__SigningKey: "Zy4m9z4uX4WcV8N7QJp0rQZ3m9M1sJvXJ6K8eK4q8XU="
+      Internal__ApiKey: "Q8pZL3X9mK7FvT6eR2S4WJdH0C5B1AqNnYyEo8cUuM4="
+      REDIS__CONNECTIONSTRING: "redis:6379"
+      KAFKA__BROKERS: "kafka:9092"
+    volumes:
+      - contacorrente_data:/data
+    networks:
+      - private
+
+  api-transferencia:
+    build:
+      context: ./src/BankMore.Transferencia.Api
+      dockerfile: Dockerfile
+    depends_on:
+      api-contacorrente:
+        condition: service_started
+      kafka:
+        condition: service_started
+    ports:
+      - "127.0.0.1:8082:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+      ConnectionStrings__SQLite: "Data Source=/data/transferencia.db"
+      JWT__Issuer: "bankmore"
+      JWT__Audience: "bankmore"
+      JWT__SigningKey: "Zy4m9z4uX4WcV8N7QJp0rQZ3m9M1sJvXJ6K8eK4q8XU="
+      Internal__ApiKey: "Q8pZL3X9mK7FvT6eR2S4WJdH0C5B1AqNnYyEo8cUuM4="
+      Services__ContaCorrenteBaseUrl: "http://api-contacorrente:8080/"
+      Kafka__Brokers: "kafka:9092"
+      Kafka__TopicoTransferencias: "transferencias-realizadas"
+    volumes:
+      - transferencia_data:/data
+    networks:
+      - private
+
+  api-tarifas:
+    build:
+      context: ./src/BankMore.Tarifas.Worker
+      dockerfile: Dockerfile
+    depends_on:
+      kafka:
+        condition: service_started
+    environment:
+      ConnectionStrings__SQLite: "Data Source=/data/tarifas.db"
+      Kafka__Brokers: "kafka:9092"
+      Kafka__TopicoTransferencias: "transferencias-realizadas"
+      Kafka__TopicoTarifas: "tarifas-realizadas"
+      Kafka__ConsumerGroup: "tarifas-consumer"
+      Tarifas__ValorTransferencia: "2.00"
+    volumes:
+      - tarifas_data:/data
+    networks:
+      - private
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    networks:
+      - private
+
+  kafka:
+    image: bitnamilegacy/kafka:3.7.1-debian-12-r4
+    environment:
+      KAFKA_ENABLE_KRAFT: "yes"
+      KAFKA_CFG_PROCESS_ROLES: "broker,controller"
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_CFG_LISTENERS: "PLAINTEXT://:9092,CONTROLLER://:9093"
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT"
+      KAFKA_CFG_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9092"
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+      KAFKA_BROKER_ID: "1"
+      KAFKA_CFG_NODE_ID: "1"
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+      KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR: "1"
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+    volumes:
+      - kafka_data:/bitnami/kafka
+    networks:
+      - private
+
+  e2e-tests:
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    working_dir: /work
+    volumes:
+      - ./:/work
+      - nuget_cache:/root/.nuget/packages
+    environment:
+      BANKMORE_GATEWAY_URL: "http://gateway:8080/"
+      BANKMORE_CC_URL: "http://api-contacorrente:8080/"
+      BANKMORE_INTERNAL_API_KEY: "Q8pZL3X9mK7FvT6eR2S4WJdH0C5B1AqNnYyEo8cUuM4="
+      NUGET_PACKAGES: "/root/.nuget/packages"
+    networks:
+      - private
+      - public
+    depends_on:
+      gateway:
+        condition: service_started
+      api-contacorrente:
+        condition: service_started
+      api-transferencia:
+        condition: service_started
+      kafka:
+        condition: service_started
+      redis:
+        condition: service_started
+    command: ["dotnet", "test", "./tests/BankMore.E2E.Tests/BankMore.E2E.Tests.csproj", "-v", "normal"]
