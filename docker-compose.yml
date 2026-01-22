@@ -80,7 +80,7 @@ services:
       api-contacorrente:
         condition: service_started
       kafka:
-        condition: service_started
+        condition: service_healthy
     ports:
       - "127.0.0.1:8082:8080"
     environment:
@@ -147,6 +147,12 @@ services:
       - kafka_data:/bitnami/kafka
     networks:
       - private
+    healthcheck:
+      test: ["CMD-SHELL", "bash -lc 'echo > /dev/tcp/localhost/9092'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
 
   e2e-tests:
     image: mcr.microsoft.com/dotnet/sdk:8.0

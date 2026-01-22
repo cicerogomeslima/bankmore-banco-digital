@@ -1,4 +1,5 @@
 using System.Data;
+using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text;
 using Dapper;
@@ -7,11 +8,8 @@ using KafkaFlow.Configuration;
 using KafkaFlow.Producers;
 using KafkaFlow.Serializer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.IdentityModel.Tokens;
-using BankMore.Contracts.Events;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,7 +56,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// KafkaFlow
 builder.Services.AddKafka(kafka =>
 {
     kafka.AddCluster(cluster =>
@@ -71,19 +68,18 @@ builder.Services.AddKafka(kafka =>
         cluster.AddProducer("transferencias-producer", producer =>
         {
             producer.DefaultTopic(topic);
-            producer.AddMiddlewares(m =>
-                m.AddSerializer<NewtonsoftJsonSerializer>());
+            producer.AddMiddlewares(m => m.AddSerializer<NewtonsoftJsonSerializer>());
         });
     });
 });
 
 var app = builder.Build();
 
-// DB init
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<IDbConnection>();
     db.Open();
+
     await db.ExecuteAsync(@"
 CREATE TABLE IF NOT EXISTS transferencia (
     idtransferencia TEXT PRIMARY KEY,
@@ -102,7 +98,6 @@ CREATE TABLE IF NOT EXISTS idempotencia (
 ");
 }
 
-// Swagger (atrás do gateway)
 app.UseSwagger(c =>
 {
     c.PreSerializeFilters.Add((swagger, httpReq) =>
@@ -123,9 +118,9 @@ app.UseSwaggerUI(c =>
 app.UseAuthentication();
 app.UseAuthorization();
 
-// *** IMPORTANT: cria + inicia o bus (KafkaFlow 3.x) ***
 var kafkaBus = app.Services.CreateKafkaBus();
 await kafkaBus.StartAsync();
+
 app.Lifetime.ApplicationStopping.Register(() =>
 {
     try { kafkaBus.StopAsync().GetAwaiter().GetResult(); } catch { /* ignore */ }
@@ -148,6 +143,7 @@ app.MapPost("/transferencias/efetuar",
             return Results.BadRequest(new { tipoFalha = "INVALID_VALUE", mensagem = "Valor deve ser maior que zero." });
 
         var chave = http.Headers["Idempotency-Key"].FirstOrDefault() ?? req.IdentificacaoRequisicao.ToString();
+
         var requestHash = Convert.ToBase64String(
             System.Security.Cryptography.SHA256.HashData(
                 Encoding.UTF8.GetBytes($"{idOrigem}|{req.IdContaDestino}|{req.Valor}")));
@@ -163,20 +159,19 @@ app.MapPost("/transferencias/efetuar",
 
             int sc = (int)idem.statusCode;
             var bodyTxt = (string?)idem.body;
+
             if (string.IsNullOrEmpty(bodyTxt))
                 return Results.StatusCode(sc);
 
             return Results.Text(bodyTxt!, "application/json", Encoding.UTF8, sc);
         }
 
-        // “reserva” idempotência
         await db.ExecuteAsync(
             "INSERT INTO idempotencia (chave_id, request_hash, status_code, response_body, criado_em) VALUES (@k,@h,202,NULL,@dt)",
             new { k = chave, h = requestHash, dt = DateTime.UtcNow.ToString("O") });
 
         var contaClient = httpFactory.CreateClient("ContaCorrente");
 
-        // Debita origem
         var debReq = new { identificacaoRequisicao = Guid.NewGuid(), valor = req.Valor, tipoMovimento = "D" };
         var debResp = await contaClient.PostAsJsonAsync($"/internal/contas/{idOrigem}/movimentar", debReq);
 
@@ -190,13 +185,11 @@ app.MapPost("/transferencias/efetuar",
             return Results.Text(txt, "application/json", Encoding.UTF8, (int)debResp.StatusCode);
         }
 
-        // Credita destino
         var credReq = new { identificacaoRequisicao = Guid.NewGuid(), valor = req.Valor, tipoMovimento = "C" };
         var credResp = await contaClient.PostAsJsonAsync($"/internal/contas/{req.IdContaDestino}/movimentar", credReq);
 
         if (!credResp.IsSuccessStatusCode)
         {
-            // estorna origem
             var estReq = new { identificacaoRequisicao = Guid.NewGuid(), valor = req.Valor, tipoMovimento = "C" };
             _ = await contaClient.PostAsJsonAsync($"/internal/contas/{idOrigem}/movimentar", estReq);
 
@@ -208,8 +201,8 @@ app.MapPost("/transferencias/efetuar",
             return Results.Text(txt, "application/json", Encoding.UTF8, (int)credResp.StatusCode);
         }
 
-        // Persiste transferência
         var idTransf = Guid.NewGuid();
+
         await db.ExecuteAsync(
             "INSERT INTO transferencia (idtransferencia, idcontaorigem, idcontadestino, valor, data) VALUES (@id,@o,@d,@v,@dt)",
             new
@@ -221,7 +214,6 @@ app.MapPost("/transferencias/efetuar",
                 dt = DateTime.UtcNow.ToString("O")
             });
 
-        // Publica evento
         var topic = cfg["Kafka:TopicoTransferencias"] ?? "transferencias-realizadas";
         var producer = producers.GetProducer("transferencias-producer");
 
@@ -236,12 +228,16 @@ app.MapPost("/transferencias/efetuar",
 
         await db.ExecuteAsync("UPDATE idempotencia SET status_code=204 WHERE chave_id=@k", new { k = chave });
         return Results.NoContent();
-    }).RequireAuthorization();
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+    })
+    .RequireAuthorization();
 
 app.Run();
 
 public sealed record EfetuarTransferenciaRequest(Guid IdentificacaoRequisicao, Guid IdContaDestino, decimal Valor);
-public sealed record TransferenciaRealizadaMessage(Guid IdTransferencia, Guid IdContaOrigem, Guid IdContaDestino, decimal Valor, DateTime Data);
+
+public sealed record TransferenciaRealizadaMessage(
+    Guid IdTransferencia,
+    Guid IdContaOrigem,
+    Guid IdContaDestino,
+    decimal Valor,
+    DateTime Data);
