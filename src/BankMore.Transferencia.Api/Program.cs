@@ -241,19 +241,6 @@ app.MapPost("/transferencias/efetuar",
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddKafkaFlow(kafka => kafka
-    .UseMicrosoftLog()
-    .AddCluster(cluster => cluster
-        .WithBrokers(new[] { builder.Configuration["Kafka:BootstrapServers"] ?? "kafka:9092" })
-        .AddProducer("transfers-producer", producer => producer
-            .DefaultTopic(builder.Configuration["Kafka:Topics:Transfers"] ?? "bankmore.transfers")
-            .AddMiddlewares(m => m
-                .AddSerializer<SystemTextJsonSerializer>()
-            )
-        )
-    )
-);
-
 app.Run();
 
 public sealed record EfetuarTransferenciaRequest(Guid IdentificacaoRequisicao, Guid IdContaDestino, decimal Valor);
