@@ -59,8 +59,10 @@ app.Use(async (ctx, next) =>
 });
 app.MapReverseProxy();
 
-app.Run();
-
 app.MapGet("/swagger", () => Results.Redirect("/conta-corrente/swagger/index.html"));
 app.MapGet("/swagger/index.html", () => Results.Redirect("/conta-corrente/swagger/index.html"));
+
+app.Run();
+
+
 

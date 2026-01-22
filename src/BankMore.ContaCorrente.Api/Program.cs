@@ -77,16 +77,7 @@ CREATE TABLE IF NOT EXISTS idempotencia (
 ");
 }
 
-app.UseSwagger(c =>
-{
-    c.PreSerializeFilters.Add((swagger, httpReq) =>
-    {
-        swagger.Servers = new List<Microsoft.OpenApi.Models.OpenApiServer>
-        {
-            new() { Url = "/conta-corrente" }
-        };
-    });
-});
+app.UseSwagger();
 
 app.UseSwaggerUI(c =>
 {
