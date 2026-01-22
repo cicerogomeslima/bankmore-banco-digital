@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BankMore.Tarifas.Worker")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f60f7b6e9eaee261a4f85d4ba9e45e355bd4d81b")]
 [assembly: System.Reflection.AssemblyProductAttribute("BankMore.Tarifas.Worker")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BankMore.Tarifas.Worker")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

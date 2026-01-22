@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\tmp\\Bank_final\\bankmore\\src\\BankMore.ContaCorrente.Api\\BankMore.ContaCorrente.Api.csproj": {}
+    "C:\\Users\\cicero.lima\\Documents\\GitHub\\bankmore-banco-digital\\src\\BankMore.ContaCorrente.Api\\BankMore.ContaCorrente.Api.csproj": {}
   },
   "projects": {
-    "C:\\tmp\\Bank_final\\bankmore\\src\\BankMore.ContaCorrente.Api\\BankMore.ContaCorrente.Api.csproj": {
+    "C:\\Users\\cicero.lima\\Documents\\GitHub\\bankmore-banco-digital\\src\\BankMore.ContaCorrente.Api\\BankMore.ContaCorrente.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\tmp\\Bank_final\\bankmore\\src\\BankMore.ContaCorrente.Api\\BankMore.ContaCorrente.Api.csproj",
+        "projectUniqueName": "C:\\Users\\cicero.lima\\Documents\\GitHub\\bankmore-banco-digital\\src\\BankMore.ContaCorrente.Api\\BankMore.ContaCorrente.Api.csproj",
         "projectName": "BankMore.ContaCorrente.Api",
-        "projectPath": "C:\\tmp\\Bank_final\\bankmore\\src\\BankMore.ContaCorrente.Api\\BankMore.ContaCorrente.Api.csproj",
+        "projectPath": "C:\\Users\\cicero.lima\\Documents\\GitHub\\bankmore-banco-digital\\src\\BankMore.ContaCorrente.Api\\BankMore.ContaCorrente.Api.csproj",
         "packagesPath": "C:\\Users\\cicero.lima\\.nuget\\packages\\",
-        "outputPath": "C:\\tmp\\Bank_final\\bankmore\\src\\BankMore.ContaCorrente.Api\\obj\\",
+        "outputPath": "C:\\Users\\cicero.lima\\Documents\\GitHub\\bankmore-banco-digital\\src\\BankMore.ContaCorrente.Api\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

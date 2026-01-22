@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "kDn6eLzFnjs=",
+  "dgSpecHash": "lHBBSsm3l08=",
   "success": true,
-  "projectFilePath": "C:\\tmp\\Bank_final\\bankmore\\src\\BankMore.ContaCorrente.Api\\BankMore.ContaCorrente.Api.csproj",
+  "projectFilePath": "C:\\Users\\cicero.lima\\Documents\\GitHub\\bankmore-banco-digital\\src\\BankMore.ContaCorrente.Api\\BankMore.ContaCorrente.Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\cicero.lima\\.nuget\\packages\\dapper\\2.1.35\\dapper.2.1.35.nupkg.sha512",
     "C:\\Users\\cicero.lima\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\8.0.0\\microsoft.aspnetcore.authentication.jwtbearer.8.0.0.nupkg.sha512",
