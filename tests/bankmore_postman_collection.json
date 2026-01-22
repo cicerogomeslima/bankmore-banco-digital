@@ -1,0 +1,470 @@
+{
+  "info": {
+    "name": "BankMore - fluxo E2E (Gateway) - Postman",
+    "_postman_id": "91fc671e-ccad-4068-888b-ef9989d6b893",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Coleção gerada a partir do projeto bankmore-banco-digital. BaseUrl padrão aponta para o Gateway (porta 8080)."
+  },
+  "item": [
+    {
+      "name": "Conta Corrente (via Gateway)",
+      "item": [
+        {
+          "name": "Cadastrar conta (origem)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conta-corrente/cadastrar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conta-corrente",
+                "cadastrar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cpf\": \"11144477735\",\n  \"senha\": \"Senha@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.environment.set('numeroOrigem', json.numeroConta);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cadastrar conta (destino)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conta-corrente/cadastrar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conta-corrente",
+                "cadastrar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cpf\": \"39053344705\",\n  \"senha\": \"Senha@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.environment.set('numeroDestino', json.numeroConta);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (origem) - gera JWT",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conta-corrente/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conta-corrente",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cpfOuNumeroConta\": \"{{numeroOrigem}}\",\n  \"senha\": \"Senha@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.environment.set('jwt', json.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Depósito (crédito) na conta origem (idempotente)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idemMov1}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conta-corrente/movimentar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conta-corrente",
+                "movimentar"
+              ]
+            },
+            "description": "Crédito na própria conta. Idempotency-Key e identificacaoRequisicao controlam idempotência.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identificacaoRequisicao\": \"{{uuid1}}\",\n  \"numeroContaCorrente\": null,\n  \"valor\": 100.0,\n  \"tipoMovimento\": \"C\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Saldo (origem)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conta-corrente/saldo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conta-corrente",
+                "saldo"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.test('Tem campo saldo', function () { pm.expect(json).to.have.property('saldo'); });",
+                  "pm.environment.set('saldoOrigem', json.saldo);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (destino) - gera JWT",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conta-corrente/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conta-corrente",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cpfOuNumeroConta\": \"{{numeroDestino}}\",\n  \"senha\": \"Senha@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.environment.set('jwtDestino', json.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Saldo (destino)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwtDestino}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conta-corrente/saldo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conta-corrente",
+                "saldo"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.environment.set('saldoDestino', json.saldo);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Internal (via Gateway)",
+      "item": [
+        {
+          "name": "Resolver id da conta destino por número",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Internal-Api-Key",
+                "value": "{{internalApiKey}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/internal/cc/contas/{{numeroDestino}}/id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "internal",
+                "cc",
+                "contas",
+                "{{numeroDestino}}",
+                "id"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.environment.set('idContaDestino', json.idContaCorrente);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Transferências (via Gateway)",
+      "item": [
+        {
+          "name": "Efetuar transferência (origem -> destino) (idempotente)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{idemTr1}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/transferencias/efetuar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "transferencias",
+                "efetuar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identificacaoRequisicao\": \"{{uuid2}}\",\n  \"idContaDestino\": \"{{idContaDestino}}\",\n  \"valor\": 10.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Saldo (origem) após transferência",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conta-corrente/saldo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conta-corrente",
+                "saldo"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "pm.environment.set('saldoOrigemDepois', json.saldo);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
