@@ -1,0 +1,8 @@
+C:\tmp\Bank_final\bankmore\src\BankMore.Transferencia.Api\obj\Debug\net8.0\BankMore.Transferencia.Api.csproj.AssemblyReference.cache
+C:\tmp\Bank_final\bankmore\src\BankMore.Transferencia.Api\obj\Debug\net8.0\rpswa.dswa.cache.json
+C:\tmp\Bank_final\bankmore\src\BankMore.Transferencia.Api\obj\Debug\net8.0\BankMore.Transferencia.Api.GeneratedMSBuildEditorConfig.editorconfig
+C:\tmp\Bank_final\bankmore\src\BankMore.Transferencia.Api\obj\Debug\net8.0\BankMore.Transferencia.Api.AssemblyInfoInputs.cache
+C:\tmp\Bank_final\bankmore\src\BankMore.Transferencia.Api\obj\Debug\net8.0\BankMore.Transferencia.Api.AssemblyInfo.cs
+C:\tmp\Bank_final\bankmore\src\BankMore.Transferencia.Api\obj\Debug\net8.0\BankMore.Transferencia.Api.csproj.CoreCompileInputs.cache
+C:\tmp\Bank_final\bankmore\src\BankMore.Transferencia.Api\obj\Debug\net8.0\BankMore.Transferencia.Api.MvcApplicationPartsAssemblyInfo.cs
+C:\tmp\Bank_final\bankmore\src\BankMore.Transferencia.Api\obj\Debug\net8.0\BankMore.Transferencia.Api.MvcApplicationPartsAssemblyInfo.cache
