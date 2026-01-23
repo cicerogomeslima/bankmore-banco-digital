@@ -55,9 +55,9 @@ Escala seletiva
 Menor acoplamento
 
 Simula cenário real de fintech/banco
+```
 
 🔧 Tecnologias Utilizadas e Benefícios
-```
 
 1️⃣ .NET 8 (C#)
 
