@@ -13,21 +13,25 @@ docker compose run --rm e2e-tests
 
 2) Segue como ficará a exposição HTTP.
 
-```BankMore.Gateway
+```
+BankMore.Gateway
 http://localhost:8080/swagger/index.html
 ```
 
-```BankMore.ContaCorrente.Api
+```
+BankMore.ContaCorrente.Api
 http://localhost:8080/conta-corrente/swagger/index.html
 ```
 
-```BankMore.Transferencia.Api
+```
+BankMore.Transferencia.Api
 http://localhost:8080/transferencias/swagger/index.html
 ```
 
 
 Arquitetura Geral
 
+```
 Estilo arquitetural
 
 Microserviços
@@ -39,9 +43,11 @@ Comunicação síncrona (HTTP) + assíncrona (Kafka)
 Isolamento de dados por serviço
 
 Infra via Docker Compose
+```
 
 👉 Benefícios:
 
+```
 Independência entre serviços
 
 Escala seletiva
@@ -51,9 +57,11 @@ Menor acoplamento
 Simula cenário real de fintech/banco
 
 🔧 Tecnologias Utilizadas e Benefícios
+```
 
 1️⃣ .NET 8 (C#)
 
+```
 Onde
 
 Todas as APIs (Conta Corrente, Transferência, Tarifas, Identity, Gateway)
@@ -103,9 +111,11 @@ Melhor entendimento de fluxo
 Mais fácil para testes e manutenção
 
 Controllers só fazem sentido em APIs grandes ou MVC tradicionais.
+```
 
 3️⃣ API Gateway (YARP)
 
+```
 Onde
 
 BankMore.Gateway
@@ -131,9 +141,11 @@ Benefícios
 🚫 APIs internas não expostas
 
 📐 Arquitetura limpa
+```
 
 4️⃣ JWT (AuthN) + API Key (AuthZ interno)
 
+```
 JWT
 
 Login do cliente
@@ -156,8 +168,10 @@ Serviço → API Key
 
 🧩 Fácil de auditar
 
+```
 5️⃣ Redis
 
+```
 Onde
 
 Gateway e serviços de domínio
@@ -205,9 +219,11 @@ Benefícios
 🔄 Resiliência
 
 🔌 Baixo acoplamento entre serviços
+```
 
 7️⃣ SQLite (por serviço)
 
+```
 Onde
 
 Cada microserviço tem seu próprio banco
@@ -231,9 +247,11 @@ Benefícios
 ❌ Sem dependência externa pesada
 
 Em produção seria PostgreSQL / SQL Server, mas a arquitetura já está preparada.
+```
 
 8️⃣ Docker + Docker Compose
 
+```
 Onde
 
 Infra completa do projeto
@@ -261,8 +279,11 @@ Benefícios
 🧪 Testes realistas
 
 📦 Simula produção local
+```
 
 9️⃣ Testes Automatizados
+
+```
 🔹 xUnit + WebApplicationFactory
 
 Testes de API isolados
@@ -282,9 +303,11 @@ Saldo
 Transferência
 
 Tarifa
+```
 
 🔹 Curl / Postman
 
+```
 Benefícios
 
 🧪 Alta confiabilidade
@@ -323,9 +346,11 @@ Benefícios
 ✅ Fácil evolução para produção
 ✅ Excelente material para entrevista técnica
 ✅ Código limpo, moderno e explicável
+```
 
 📌 Em resumo
 
+```
 O BankMore não é só um CRUD — ele demonstra:
 
 Arquitetura
@@ -337,4 +362,4 @@ Resiliência
 Observabilidade implícita
 
 Boas práticas reais de mercado
-
+```
